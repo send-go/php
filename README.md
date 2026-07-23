@@ -1,128 +1,249 @@
-# techigh/sendgo
+# sendgo/php
 
-> **Sendgo** PHP SDK — 카카오 알림톡/친구톡, SMS/LMS/MMS
-> Laravel 및 순수 PHP 8.2+ 프로젝트에서 사용 가능합니다.
+> **PHP에서 카카오 알림톡, 친구톡, SMS를 가장 쉽게 발송하는 순수 PHP SDK**
 
-[![Packagist](https://img.shields.io/packagist/v/techigh/sendgo)](https://packagist.org/packages/techigh/sendgo)
-[![PHP](https://img.shields.io/badge/PHP-8.2+-blue)](https://php.net)
+[![Packagist](https://img.shields.io/packagist/v/sendgo/php)](https://packagist.org/packages/sendgo/php)
+[![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php)](https://php.net)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
+`sendgo/php`는 [Sendgo](https://sendgo.io) 알림 API를 위한 **순수 PHP SDK**입니다.
+Laravel 등 특정 프레임워크에 의존하지 않으며, `ext-curl`과 `ext-json`만으로 동작합니다.
 
 ---
 
-## 빠른 시작 (3단계)
-
-### 1단계 — 설치
+## 설치
 
 ```bash
-composer require techigh/sendgo
+composer require sendgo/php
 ```
 
-### 2단계 — 설정
+---
+
+## 빠른 시작
 
 ```php
-// 순수 PHP
-$sendgo = new \Techigh\Sendgo\Sendgo([
+<?php
+
+use Sendgo\Php\Sendgo;
+
+$sendgo = new Sendgo([
     'access_key'       => $_ENV['SENDGO_ACCESS_KEY'],
     'secret_key'       => $_ENV['SENDGO_SECRET_KEY'],
     'kakao_sender_key' => $_ENV['SENDGO_KAKAO_SENDER_KEY'],
     'sms_sender_key'   => $_ENV['SENDGO_SMS_SENDER_KEY'],
     'api_version'      => 'v2',
 ]);
-```
 
-**Laravel `.env`:**
-```env
-SENDGO_ACCESS_KEY=your_access_key
-SENDGO_SECRET_KEY=your_secret_key
-SENDGO_KAKAO_SENDER_KEY=your_kakao_key
-SENDGO_SENDER_KEY=your_sms_key
-SENDGO_API_VERSION=v2
-```
-
-### 3단계 — 알림톡 전송
-
-```php
+// 알림톡 발송
 $sendgo->alimtalk->send([
     'templateCode' => 'ORDER_CONFIRM_001',
     'contacts'     => [
-        ['contact' => '01012345678', 'name' => '홍길동', 'var1' => 'ORD-001'],
+        ['contact' => '01012345678', 'name' => '홍길동', 'var1' => 'ORD-001', 'var2' => '29,000원'],
     ],
+]);
+
+// SMS 발송
+$sendgo->sms->sendSms([
+    'content'  => '[Sendgo] 인증번호: 123456 (5분 이내 입력)',
+    'contacts' => [['contact' => '01012345678']],
 ]);
 ```
 
 ---
 
-## 기능별 사용법
-
-### 알림톡
+## 알림톡 상세 사용법
 
 ```php
+<?php
+
 // 다건 발송
 $sendgo->alimtalk->send([
     'templateCode' => 'ORDER_CONFIRM_001',
     'contacts'     => [
-        ['contact' => '01011111111', 'var1' => 'ORD-001'],
-        ['contact' => '01022222222', 'var1' => 'ORD-002'],
+        ['contact' => '01011111111', 'name' => '홍길동', 'var1' => 'ORD-001', 'var2' => '29,000원'],
+        ['contact' => '01022222222', 'name' => '김철수', 'var1' => 'ORD-002', 'var2' => '15,000원'],
+        ['contact' => '01033333333', 'name' => '이영희', 'var1' => 'ORD-003', 'var2' => '52,000원'],
     ],
-]);
-
-// SMS 대체 발송
-$sendgo->alimtalk->send([
-    'templateCode' => 'DELIVERY_001',
-    'replaceSms'   => 'Y',
-    'smsSubject'   => '[배송 안내]',
-    'smsContent'   => '상품이 출고되었습니다.',
-    'contacts'     => [['contact' => '01012345678', 'var1' => 'ORD-001']],
 ]);
 
 // 예약 발송
 $sendgo->alimtalk->send([
-    'templateCode' => 'PROMO_001',
+    'templateCode' => 'PROMO_SUMMER_2026',
     'scheduleType' => 'SCHEDULED',
-    'at'           => '2026-04-01 09:00:00',
-    'contacts'     => [['contact' => '01012345678']],
+    'at'           => '2026-07-28 09:00:00',
+    'contacts'     => [['contact' => '01012345678', 'var1' => '여름 한정 50% 할인']],
+]);
+
+// 알림톡 실패 시 SMS 자동 대체 발송
+$sendgo->alimtalk->send([
+    'templateCode' => 'DELIVERY_START_001',
+    'replaceSms'   => 'Y',
+    'smsSubject'   => '[배송 시작 안내]',
+    'smsContent'   => "주문하신 상품이 출고되었습니다.\n송장번호: #{var2}",
+    'contacts'     => [['contact' => '01012345678', 'var1' => 'ORD-001', 'var2' => '1234567890']],
 ]);
 ```
 
-### SMS / LMS / MMS
+---
+
+## 친구톡 사용법
 
 ```php
-// SMS
-$sendgo->sms->sendSms([
-    'content'  => '인증번호: 123456',
-    'contacts' => [['contact' => '01012345678']],
-]);
+<?php
 
-// LMS
-$sendgo->sms->sendLms([
-    'subject'  => '[공지사항]',
-    'content'  => '서비스 점검이 예정되어 있습니다...',
-    'contacts' => [['contact' => '01012345678']],
-]);
-```
-
-### 친구톡
-
-```php
+// 텍스트형
 $sendgo->friendtalk->send([
-    'content'  => '이번 주 특가 이벤트를 확인하세요!',
+    'content'  => '안녕하세요! 7월 한정 특가 이벤트를 확인해보세요.',
+    'contacts' => [['contact' => '01012345678']],
+]);
+
+// 이미지형
+$sendgo->friendtalk->send([
+    'messageType' => 'FI',
+    'content'     => '이번 주 특가 상품을 확인하세요!',
+    'imageUrl'    => 'https://cdn.example.com/banner.jpg',
+    'imageLink'   => 'https://example.com/event',
+    'contacts'    => [['contact' => '01012345678']],
+]);
+
+// 버튼 포함
+$sendgo->friendtalk->send([
+    'content'  => '7월 쿠폰이 도착했습니다! 지금 바로 사용하세요.',
+    'buttons'  => [
+        ['name' => '쿠폰 받기', 'type' => 'WL', 'linkMo' => 'https://example.com/coupon'],
+    ],
     'contacts' => [['contact' => '01012345678']],
 ]);
 ```
 
 ---
 
-## Laravel 통합
-
-`config/sendgo.php`를 퍼블리시하고 `Sendgo` 파사드를 사용하세요:
-
-```bash
-php artisan vendor:publish --tag=sendgo-config
-```
+## SMS / LMS / MMS 사용법
 
 ```php
-use Techigh\Sendgo\Sendgo;
+<?php
 
-app(Sendgo::class)->alimtalk->send([...]);
+// SMS (90자 이하)
+$sendgo->sms->sendSms([
+    'content'  => '[Sendgo] 인증번호: 123456 (5분 이내 입력)',
+    'contacts' => [['contact' => '01012345678']],
+]);
+
+// LMS (장문, 2,000자 이하)
+$sendgo->sms->sendLms([
+    'subject'  => '[중요] 서비스 점검 안내',
+    'content'  => "안녕하세요. 서비스 점검이 예정되어 있습니다.\n\n■ 일시: 2026-07-25 02:00 ~ 06:00\n■ 영향: 전체 서비스",
+    'contacts' => [['contact' => '01012345678']],
+]);
+
+// MMS (이미지 포함)
+$sendgo->sms->sendMms([
+    'subject'  => '[이벤트] 7월 특가',
+    'content'  => '이번 달 특가 상품을 확인하세요!',
+    'contacts' => [['contact' => '01012345678']],
+]);
+
+// 예약 문자
+$sendgo->sms->sendSms([
+    'content'      => '[알림] 예약 미팅을 확인해주세요.',
+    'scheduleType' => 'SCHEDULED',
+    'at'           => '2026-07-23 08:00:00',
+    'contacts'     => [['contact' => '01012345678']],
+]);
+```
+
+---
+
+## 프레임워크 통합
+
+### Symfony
+
+```php
+<?php
+// src/Service/NotificationService.php
+
+namespace App\Service;
+
+use Sendgo\Php\Sendgo;
+use Sendgo\Php\Exception\SendgoException;
+
+class NotificationService
+{
+    public function __construct(private Sendgo $sendgo) {}
+
+    public function sendOrderConfirm(string $phone, string $orderNo): void
+    {
+        $this->sendgo->alimtalk->send([
+            'templateCode' => 'ORDER_CONFIRM_001',
+            'contacts'     => [['contact' => $phone, 'var1' => $orderNo]],
+        ]);
+    }
+
+    public function sendShippingAlert(string $phone, string $trackingNo): void
+    {
+        $this->sendgo->alimtalk->send([
+            'templateCode' => 'SHIPPING_001',
+            'replaceSms'   => 'Y',
+            'smsContent'   => "배송이 시작되었습니다.\n송장번호: {$trackingNo}",
+            'contacts'     => [['contact' => $phone, 'var1' => $trackingNo]],
+        ]);
+    }
+}
+```
+
+### Slim Framework
+
+```php
+<?php
+// bootstrap/app.php
+
+use DI\Container;
+use Sendgo\Php\Sendgo;
+
+$container = new Container();
+$container->set(Sendgo::class, fn() => new Sendgo([
+    'access_key'       => $_ENV['SENDGO_ACCESS_KEY'],
+    'secret_key'       => $_ENV['SENDGO_SECRET_KEY'],
+    'kakao_sender_key' => $_ENV['SENDGO_KAKAO_KEY'],
+    'api_version'      => 'v2',
+]));
+```
+
+### WordPress / WooCommerce
+
+```php
+<?php
+
+use Sendgo\Php\Sendgo;
+use Sendgo\Php\Exception\SendgoException;
+
+function get_sendgo(): Sendgo {
+    static $instance = null;
+    if ($instance === null) {
+        $instance = new Sendgo([
+            'access_key'       => get_option('sendgo_access_key'),
+            'secret_key'       => get_option('sendgo_secret_key'),
+            'kakao_sender_key' => get_option('sendgo_kakao_key'),
+            'api_version'      => 'v2',
+        ]);
+    }
+    return $instance;
+}
+
+// WooCommerce 주문 완료 시 알림톡 발송
+add_action('woocommerce_order_status_completed', function (int $orderId) {
+    $order = wc_get_order($orderId);
+    try {
+        get_sendgo()->alimtalk->send([
+            'templateCode' => 'ORDER_CONFIRM_001',
+            'contacts'     => [
+                ['contact' => $order->get_billing_phone(), 'var1' => $order->get_order_number()],
+            ],
+        ]);
+    } catch (SendgoException $e) {
+        error_log("Sendgo 알림 실패: {$e->getMessage()}");
+    }
+});
 ```
 
 ---
@@ -130,21 +251,61 @@ app(Sendgo::class)->alimtalk->send([...]);
 ## 예외 처리
 
 ```php
-use Techigh\Sendgo\Exception\SendgoException;
+<?php
+
+use Sendgo\Php\Exception\SendgoException;
 
 try {
-    $sendgo->alimtalk->send([...]);
-} catch (SendgoException $e) {
-    logger()->error('알림톡 실패', [
-        'status'     => $e->getStatusCode(),
-        'error_code' => $e->getErrorCode(),
-        'endpoint'   => $e->getEndpoint(),
+    $sendgo->alimtalk->send([
+        'templateCode' => 'ORDER_CONFIRM_001',
+        'contacts'     => [['contact' => '01012345678']],
     ]);
+} catch (SendgoException $e) {
+    echo "발송 실패: HTTP {$e->getStatusCode()} [{$e->getErrorCode()}]" . PHP_EOL;
+
+    match ($e->getErrorCode()) {
+        'INVALID_ACCESS_KEY',
+        'INVALID_SECRET_KEY'    => alertOps('Sendgo 인증키를 확인하세요.'),
+        'INVALID_TEMPLATE_CODE' => logger('존재하지 않는 템플릿'),
+        'PAYMENT_REQUIRED'      => alertOps('Sendgo 크레딧이 부족합니다.'),
+        'IP_NOT_ALLOWED'        => alertOps('허용되지 않은 IP'),
+        default                 => logger('알 수 없는 오류: ' . $e->getMessage()),
+    };
 }
 ```
 
 ---
 
+## 설정 옵션
+
+| 파라미터 | 타입 | 필수 | 기본값 | 설명 |
+|---------|------|------|--------|------|
+| `access_key` | `string` | **필수** | — | Sendgo 액세스 키 |
+| `secret_key` | `string` | **필수** | — | Sendgo 시크릿 키 |
+| `kakao_sender_key` | `string\|null` | 선택 | `null` | 카카오 발신프로필 키 |
+| `sms_sender_key` | `string\|null` | 선택 | `null` | SMS 발신자 키 |
+| `api_version` | `string` | 선택 | `'v1'` | API 버전 (`v1` \| `v2`) |
+| `url` | `string` | 선택 | `'https://api.sendgo.io'` | API 기본 URL |
+
+---
+
+## 관련 패키지
+
+| 언어/프레임워크 | 패키지 | GitHub |
+|----------------|--------|--------|
+| Laravel | `sendgo/laravel` | [laravel](https://github.com/send-go/laravel) |
+| Spring Boot | `io.sendgo:sendgo-spring` | [spring](https://github.com/send-go/spring) |
+| Node.js | `@sendgo/node` | [node](https://github.com/send-go/node) |
+| Python | `sendgo-python` | [python](https://github.com/send-go/python) |
+| Go | `github.com/send-go/go` | [go](https://github.com/send-go/go) |
+| 전체 목록 | — | [send-go GitHub 조직](https://github.com/send-go) |
+
+---
+
 ## 라이선스
 
-MIT License © [Sendgo](https://sendgo.io)
+MIT License © 2026 [Sendgo](https://sendgo.io)
+
+---
+
+*키워드: 카카오 알림톡 PHP, 카카오 친구톡 PHP, SMS 발송 PHP, 알림톡 SDK Composer, PHP 카카오 API 연동, Sendgo PHP SDK, Packagist 알림 발송*

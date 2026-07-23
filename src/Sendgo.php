@@ -1,6 +1,6 @@
 <?php
 
-namespace Techigh\Sendgo;
+namespace Sendgo\Php;
 
 /**
  * Sendgo PHP SDK 메인 클라이언트.

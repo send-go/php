@@ -1,6 +1,6 @@
 <?php
 
-namespace Techigh\Sendgo;
+namespace Sendgo\Php;
 
 /**
  * 카카오 친구톡 전송 서비스.

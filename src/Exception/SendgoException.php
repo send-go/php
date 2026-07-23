@@ -1,6 +1,6 @@
 <?php
 
-namespace Techigh\Sendgo\Exception;
+namespace Sendgo\Php\Exception;
 
 use RuntimeException;
 

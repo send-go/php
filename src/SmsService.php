@@ -1,6 +1,6 @@
 <?php
 
-namespace Techigh\Sendgo;
+namespace Sendgo\Php;
 
 /**
  * SMS / LMS / MMS 전송 서비스.

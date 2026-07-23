@@ -1,10 +1,10 @@
 {
-    "name": "techigh/sendgo",
-    "description": "Sendgo PHP SDK — 카카오 알림톡/친구톡, SMS/LMS/MMS",
+    "name": "sendgo/php",
+    "description": "Sendgo PHP SDK — 카카오 알림톡/친구톡, SMS/LMS/MMS 발송",
     "license": "MIT",
     "keywords": ["sendgo", "kakao", "alimtalk", "friendtalk", "sms", "notification", "korea"],
     "homepage": "https://sendgo.io",
-    "authors": [{"name": "Techigh", "email": "techigh@amuz.co.kr"}],
+    "authors": [{"name": "Sendgo", "email": "dev@sendgo.io"}],
     "require": {
         "php": ">=8.2",
         "ext-json": "*",
@@ -14,15 +14,10 @@
         "phpunit/phpunit": "^11.0"
     },
     "autoload": {
-        "psr-4": {"Techigh\\Sendgo\\": "src/"}
+        "psr-4": {"Sendgo\\Php\\": "src/"}
     },
     "autoload-dev": {
-        "psr-4": {"Techigh\\Sendgo\\Tests\\": "tests/"}
-    },
-    "extra": {
-        "laravel": {
-            "providers": ["Techigh\\Sendgo\\Laravel\\SendgoServiceProvider"]
-        }
+        "psr-4": {"Sendgo\\Php\\Tests\\": "tests/"}
     },
     "minimum-stability": "stable",
     "prefer-stable": true,

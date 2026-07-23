@@ -1,8 +1,8 @@
 <?php
 
-namespace Techigh\Sendgo;
+namespace Sendgo\Php;
 
-use Techigh\Sendgo\Exception\SendgoException;
+use Sendgo\Php\Exception\SendgoException;
 
 class HttpClient
 {
