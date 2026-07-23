@@ -37,7 +37,7 @@ class Sendgo
      */
     public function __construct(array $config)
     {
-        $url        = $config['url'] ?? 'https://api.sendgo.io';
+        $url        = $config['url'] ?? 'https://sendgo.io';
         $version    = $config['api_version'] ?? 'v1';
         $kakaoKey   = $config['kakao_sender_key'] ?? null;
         $smsKey     = $config['sms_sender_key'] ?? null;

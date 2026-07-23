@@ -285,7 +285,7 @@ try {
 | `kakao_sender_key` | `string\|null` | 선택 | `null` | 카카오 발신프로필 키 |
 | `sms_sender_key` | `string\|null` | 선택 | `null` | SMS 발신자 키 |
 | `api_version` | `string` | 선택 | `'v1'` | API 버전 (`v1` \| `v2`) |
-| `url` | `string` | 선택 | `'https://api.sendgo.io'` | API 기본 URL |
+| `url` | `string` | 선택 | `'https://sendgo.io'` | API 기본 URL |
 
 ---
 
