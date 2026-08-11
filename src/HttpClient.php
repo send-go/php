@@ -13,27 +13,56 @@ class HttpClient
 
     public function post(string $url, array $body): array
     {
-        return $this->doPost($url, $body, false);
+        return $this->request('POST', $url, $body, false);
     }
 
-    private function doPost(string $url, array $body, bool $isRetry): array
+    /**
+     * @param  array<string, mixed>  $query  Appended as a query string.
+     */
+    public function get(string $url, array $query = []): array
+    {
+        if ($query !== []) {
+            $url .= (str_contains($url, '?') ? '&' : '?').http_build_query($query);
+        }
+
+        return $this->request('GET', $url, null, false);
+    }
+
+    /**
+     * `request()` already drives the method through CURLOPT_CUSTOMREQUEST, so
+     * DELETE needs no special handling beyond not sending a body.
+     */
+    public function delete(string $url): array
+    {
+        return $this->request('DELETE', $url, null, false);
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $body  Null for requests without a body.
+     */
+    private function request(string $method, string $url, ?array $body, bool $isRetry): array
     {
         $token = $this->tokenManager->getToken();
         $bearer = $this->makeBearerAuth($token);
-        $payload = json_encode($body);
 
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => $payload,
+        $headers = ["Authorization: {$bearer}"];
+        $options = [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => 15,
-            CURLOPT_HTTPHEADER => [
-                'Content-Type: application/json',
-                'Content-Length: ' . strlen($payload),
-                "Authorization: {$bearer}",
-            ],
-        ]);
+            CURLOPT_CUSTOMREQUEST => $method,
+        ];
+
+        if ($body !== null) {
+            $payload = json_encode($body);
+            $options[CURLOPT_POSTFIELDS] = $payload;
+            $headers[] = 'Content-Type: application/json';
+            $headers[] = 'Content-Length: '.strlen($payload);
+        }
+
+        $options[CURLOPT_HTTPHEADER] = $headers;
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, $options);
 
         $responseBody = curl_exec($ch);
         $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -45,9 +74,10 @@ class HttpClient
             $errorCode = $data['code'] ?? null;
             $endpoint = basename(parse_url($url, PHP_URL_PATH) ?? $url);
 
-            if (!$isRetry && $this->tokenManager->shouldRefresh($status, $errorCode)) {
+            if (! $isRetry && $this->tokenManager->shouldRefresh($status, $errorCode)) {
                 $this->tokenManager->invalidate();
-                return $this->doPost($url, $body, true);
+
+                return $this->request($method, $url, $body, true);
             }
 
             throw SendgoException::fromResponse($status, $data, $endpoint, $this->apiVersion);
