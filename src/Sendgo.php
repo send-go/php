@@ -22,6 +22,7 @@ namespace Sendgo\Php;
 class Sendgo
 {
     public readonly AlimtalkService     $alimtalk;
+    /** @deprecated 친구톡은 2025-12-31 종료. $brandMessage 를 사용하세요. */
     public readonly FriendtalkService   $friendtalk;
     /** 카카오 브랜드메시지 — 친구톡의 후속 채널. v2 전용. */
     public readonly BrandMessageService $brandMessage;
