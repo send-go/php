@@ -30,6 +30,27 @@ class Sendgo
     public readonly ShortUrlService     $shortUrl;
     public readonly SmsService          $sms;
 
+    // ---------------------------------------------------------- 관리 API (v2)
+    // 콘솔에서만 되던 등록·심사를 코드로 옮긴 것들. 발송과 달리 대부분
+    // 즉시 완료되지 않는다 — 등록 성공은 "접수됨"이지 "사용 가능"이 아니다.
+
+    /** 카카오 발신프로필(채널) 등록·동기화. v2 전용, 기업 계정 전용. */
+    public readonly KakaoSenderService  $kakaoSenders;
+    /** 알림톡 템플릿 등록·수정·검수 요청. v2 전용, 기업 계정 전용. */
+    public readonly NoticeTemplateService $noticeTemplates;
+    /** 브랜드메시지(구 친구톡) 템플릿 관리. v2 전용, 기업 계정 전용. */
+    public readonly BrandTemplateService $brandTemplates;
+    /** 발신번호 등록·심사 접수. v2 전용. */
+    public readonly SenderRegistrationService $senderRegistration;
+    /** 문자 상용구 템플릿. v2 전용. */
+    public readonly MessageTemplateService $messageTemplates;
+    /** 카카오 이미지 업로드 — 브랜드메시지 템플릿용 URL 발급. v2 전용, 기업 계정 전용. */
+    public readonly KakaoImageService $kakaoImages;
+    /** 수신거부(080) 번호 조회. v2 전용. */
+    public readonly RejectedNumberService $rejectedNumbers;
+    /** 이벤트 웹훅 구독 — 등록·심사 결과를 밀어 받는다. v2 전용. */
+    public readonly WebhookService $webhook;
+
     /**
      * @param array{
      *   access_key: string,
@@ -55,6 +76,15 @@ class Sendgo
         $this->brandMessage = new BrandMessageService($http, $url, $version, $kakaoKey, $smsKey);
         $this->shortUrl     = new ShortUrlService($http, $url, $version);
         $this->sms          = new SmsService($http, $url, $version, $smsKey);
+
+        $this->kakaoSenders       = new KakaoSenderService($http, $url, $version);
+        $this->noticeTemplates    = new NoticeTemplateService($http, $url, $version);
+        $this->brandTemplates     = new BrandTemplateService($http, $url, $version);
+        $this->senderRegistration = new SenderRegistrationService($http, $url, $version);
+        $this->messageTemplates   = new MessageTemplateService($http, $url, $version);
+        $this->kakaoImages        = new KakaoImageService($http, $url, $version);
+        $this->rejectedNumbers    = new RejectedNumberService($http, $url, $version);
+        $this->webhook            = new WebhookService($http, $url, $version);
     }
 
     /**
@@ -71,7 +101,7 @@ class Sendgo
      *
      * @throws \BadMethodCallException
      */
-    public function __call(string $name, array $arguments): AlimtalkService|FriendtalkService|BrandMessageService|ShortUrlService|SmsService
+    public function __call(string $name, array $arguments): AlimtalkService|FriendtalkService|BrandMessageService|ShortUrlService|SmsService|KakaoSenderService|NoticeTemplateService|BrandTemplateService|SenderRegistrationService|MessageTemplateService|KakaoImageService|RejectedNumberService|WebhookService
     {
         return match ($name) {
             'alimtalk' => $this->alimtalk,
@@ -79,6 +109,14 @@ class Sendgo
             'brandMessage', 'brand_message' => $this->brandMessage,
             'shortUrl', 'short_url' => $this->shortUrl,
             'sms' => $this->sms,
+            'kakaoSenders', 'kakao_senders' => $this->kakaoSenders,
+            'noticeTemplates', 'notice_templates' => $this->noticeTemplates,
+            'brandTemplates', 'brand_templates' => $this->brandTemplates,
+            'senderRegistration', 'sender_registration' => $this->senderRegistration,
+            'messageTemplates', 'message_templates' => $this->messageTemplates,
+            'kakaoImages', 'kakao_images' => $this->kakaoImages,
+            'rejectedNumbers', 'rejected_numbers' => $this->rejectedNumbers,
+            'webhook' => $this->webhook,
             default => throw new \BadMethodCallException(
                 sprintf('Call to undefined method %s::%s()', static::class, $name)
             ),
