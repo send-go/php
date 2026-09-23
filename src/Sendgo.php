@@ -36,6 +36,8 @@ class Sendgo
 
     /** 카카오 발신프로필(채널) 등록·동기화. v2 전용, 기업 계정 전용. */
     public readonly KakaoSenderService  $kakaoSenders;
+    /** 템플릿 공용 폴더. v2 전용, 기업 계정 전용. */
+    public readonly TemplateFolderService $templateFolders;
     /** 알림톡 템플릿 등록·수정·검수 요청. v2 전용, 기업 계정 전용. */
     public readonly NoticeTemplateService $noticeTemplates;
     /** 브랜드메시지(구 친구톡) 템플릿 관리. v2 전용, 기업 계정 전용. */
@@ -78,6 +80,7 @@ class Sendgo
         $this->sms          = new SmsService($http, $url, $version, $smsKey);
 
         $this->kakaoSenders       = new KakaoSenderService($http, $url, $version);
+        $this->templateFolders    = new TemplateFolderService($http, $url, $version);
         $this->noticeTemplates    = new NoticeTemplateService($http, $url, $version);
         $this->brandTemplates     = new BrandTemplateService($http, $url, $version);
         $this->senderRegistration = new SenderRegistrationService($http, $url, $version);
@@ -101,7 +104,7 @@ class Sendgo
      *
      * @throws \BadMethodCallException
      */
-    public function __call(string $name, array $arguments): AlimtalkService|FriendtalkService|BrandMessageService|ShortUrlService|SmsService|KakaoSenderService|NoticeTemplateService|BrandTemplateService|SenderRegistrationService|MessageTemplateService|KakaoImageService|RejectedNumberService|WebhookService
+    public function __call(string $name, array $arguments): TemplateFolderService|AlimtalkService|FriendtalkService|BrandMessageService|ShortUrlService|SmsService|KakaoSenderService|NoticeTemplateService|BrandTemplateService|SenderRegistrationService|MessageTemplateService|KakaoImageService|RejectedNumberService|WebhookService
     {
         return match ($name) {
             'alimtalk' => $this->alimtalk,
@@ -110,6 +113,7 @@ class Sendgo
             'shortUrl', 'short_url' => $this->shortUrl,
             'sms' => $this->sms,
             'kakaoSenders', 'kakao_senders' => $this->kakaoSenders,
+            'templateFolders', 'template_folders' => $this->templateFolders,
             'noticeTemplates', 'notice_templates' => $this->noticeTemplates,
             'brandTemplates', 'brand_templates' => $this->brandTemplates,
             'senderRegistration', 'sender_registration' => $this->senderRegistration,
